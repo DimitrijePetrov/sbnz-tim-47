@@ -1,42 +1,25 @@
-import { useMutation, useQuery } from '@tanstack/react-query'
-import { geocodingAxios, historicalDataAxios, mainAxios } from '../axios'
-import { GeometryLocation } from '../components/Map/Map'
-
-export interface GeocodingResult {
-    name: string
-    country: string
-    latitude: string
-    longitude: string
-}
-
-export interface GeocodingResponse {
-    results: GeocodingResult[]
-}
-
-export interface HistoricalDataHourly {
-    temperature_2m: number[]
-    time: string[]
-}
+import { useQuery } from '@tanstack/react-query'
+import { historicalDataAxios } from '../axios'
 
 export interface HistoricalDataResponse {
-    hourly: HistoricalDataHourly
+    daily: {
+        temperature_2m_max: number[]
+        temperature_2m_min: number[]
+    }
+    hourly: {
+        relativehumidity_2m: number[]
+        surface_pressure: number[]
+        temperature_2m: number[]
+        windspeed_10m: number[]
+        weathercode: number[]
+    }
 }
 
-export const useReadGeocoding = (query: string) =>
+export const useReadCurrentWeather = () =>
     useQuery(
-        ['geocoding', query],
-        (): Promise<GeocodingResponse> => geocodingAxios.get(`search?name=${query}&count=10&language=en&format=json`),
-        { enabled: Boolean(query) }
-    )
-
-export const useReadHistoricalData = ({ lat, lng }: GeometryLocation) =>
-    useQuery(
-        ['historical-data', `${lat}-${lng}`],
+        ['historical-data'],
         (): Promise<HistoricalDataResponse> =>
             historicalDataAxios.get(
-                `forecast?latitude=${lat}&longitude=${lng}&hourly=temperature_2m&past_days=7&forecast_days=2`
+                `forecast?latitude=45.25&longitude=19.84&hourly=temperature_2m,weathercode,relativehumidity_2m,surface_pressure,windspeed_10m&daily=temperature_2m_max,temperature_2m_min&forecast_days=1&timezone=Europe%2FBerlin`
             )
     )
-
-export const useRequestForecast = () =>
-    useMutation((body: HistoricalDataHourly) => mainAxios.post('', body), { onSuccess: data => console.log(data) })
