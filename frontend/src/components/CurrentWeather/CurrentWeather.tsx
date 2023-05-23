@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react'
-import { CurrentWeatherStyled } from './CurrentWeather.styled'
+import { CurrentWeatherStyled, CurrentWeatherIconStyled } from './CurrentWeather.styled'
 import { Flex, Text } from '@chakra-ui/react'
-import { Cloud } from '../../assets'
 import { BiDroplet, BiWind } from 'react-icons/bi'
 import { FiArrowDown, FiArrowUp } from 'react-icons/fi'
 import { TbGauge } from 'react-icons/tb'
 import { useReadCurrentWeather } from '../../repositories'
+import { getWeather, Weather, WEATHER_MAP } from '../../util'
 
 interface CurrentWeatherData {
     temperature: number
@@ -14,7 +14,7 @@ interface CurrentWeatherData {
     wind: number
     humidity: number
     pressure: number
-    name: string
+    name: Weather
 }
 
 export const CurrentWeather = () => {
@@ -31,7 +31,7 @@ export const CurrentWeather = () => {
             pressure: data.hourly.surface_pressure[hour],
             temperature: data.hourly.temperature_2m[hour],
             wind: data.hourly.windspeed_10m[hour],
-            name: 'Raining'
+            name: getWeather(data.hourly.weathercode[hour])
         })
     }, [data])
 
@@ -46,7 +46,9 @@ export const CurrentWeather = () => {
                         Novi Sad
                     </Text>
                     <Flex alignItems='center' gap='32px' height='100px'>
-                        <Cloud width={96} height={96} color='#bbdefb' />
+                        <CurrentWeatherIconStyled>
+                            {weather ? WEATHER_MAP[weather?.name] : null}
+                        </CurrentWeatherIconStyled>
                         <Text fontSize='72px' color='#4a6fa1'>
                             {weather?.temperature}°
                         </Text>
