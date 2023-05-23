@@ -1,0 +1,136 @@
+package rules.forward;
+
+import com.weatherforecast.model.MeasuredHourlyWeatherData;
+import com.weatherforecast.model.PredictedHourlyTemperature;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.LocalDateTime;
+
+
+rule "calculate average temperature for this hour in the past three days"
+salience 10
+    when
+        $m1: MeasuredHourlyWeatherData(
+            date == LocalDateTime.now().plusHours(1).minusDays(1).toLocalDate(),
+            hour == LocalTime.now().plusHours(1).getHour(),
+            $t1: temperature
+        )
+        $m2: MeasuredHourlyWeatherData(
+            date == LocalDateTime.now().plusHours(1).minusDays(2).toLocalDate(),
+            hour == LocalTime.now().plusHours(1).getHour(),
+            $t2: temperature
+        )
+        $m3: MeasuredHourlyWeatherData(
+            date == LocalDateTime.now().plusHours(1).minusDays(3).toLocalDate(),
+            hour == LocalTime.now().plusHours(1).getHour(),
+            $t3: temperature
+        )
+        $average: Double() from (( $t1 * 1.6 + $t2 + $t3 * 0.4 ) / 3)
+    then
+        System.out.println("Base predicted temperature: " + $average);
+        insert(new PredictedHourlyTemperature(LocalDateTime.now().plusHours(1), $average));
+end
+
+rule "lower predicted temperature based on precipitation"
+salience 9
+    when
+        $p: PredictedHourlyTemperature(
+            date == LocalDateTime.now().plusHours(1).toLocalDate(),
+            hour == LocalTime.now().plusHours(1).getHour(),
+            precipitationApplied == false
+        )
+        $m1: MeasuredHourlyWeatherData(
+            date == LocalDateTime.now().plusHours(1).minusDays(1).toLocalDate(),
+            hour == LocalTime.now().plusHours(1).getHour(),
+            precipitation > 1.0
+        )
+        $m2: MeasuredHourlyWeatherData(
+            date == LocalDateTime.now().plusHours(1).minusDays(2).toLocalDate(),
+            hour == LocalTime.now().plusHours(1).getHour(),
+            precipitation == 0.0
+        )
+    then
+        modify($p){
+            applyPrecipitationFactor(0.9)
+        }
+        System.out.println("Temperature after precipitation: " + $p.getTemperature());
+end
+
+rule "update precipitation applied flag"
+salience 8
+    when
+        $p: PredictedHourlyTemperature(
+            date == LocalDateTime.now().plusHours(1).toLocalDate(),
+            hour == LocalTime.now().plusHours(1).getHour(),
+            precipitationApplied == false
+        )
+    then
+        modify($p) {
+            setPrecipitationApplied(true)
+        }
+        System.out.println("Temperature not modified by precipitation.");
+end
+
+rule "detect rising temperature trend"
+salience 7
+no-loop true
+    when
+        $p: PredictedHourlyTemperature(
+            date == LocalDateTime.now().plusHours(1).toLocalDate(),
+            hour == LocalTime.now().plusHours(1).getHour(),
+            precipitationApplied == true
+        )
+        $m1: MeasuredHourlyWeatherData(
+            date == LocalDateTime.now().plusHours(1).minusDays(1).toLocalDate(),
+            hour == LocalTime.now().plusHours(1).getHour(),
+            $t1: temperature
+        )
+        $m2: MeasuredHourlyWeatherData(
+            date == LocalDateTime.now().plusHours(1).minusDays(2).toLocalDate(),
+            hour == LocalTime.now().plusHours(1).getHour(),
+            $t2: temperature < $t1
+        )
+        $m3: MeasuredHourlyWeatherData(
+            date == LocalDateTime.now().plusHours(1).minusDays(3).toLocalDate(),
+            hour == LocalTime.now().plusHours(1).getHour(),
+            $t3: temperature < $t2
+        )
+        $trendModifier: Double() from ((( ($t1 - $t2) * 1.5 + ($t2 - $t3) * 0.5 ) / 2) * 1.5)
+    then
+        modify($p) {
+            addTemperature($trendModifier)
+        }
+        System.out.println("Temperature after trend: " + $p.getTemperature());
+end
+
+rule "detect falling temperature trend"
+salience 6
+no-loop true
+    when
+        $p: PredictedHourlyTemperature(
+            date == LocalDateTime.now().plusHours(1).toLocalDate(),
+            hour == LocalTime.now().plusHours(1).getHour(),
+            precipitationApplied == true
+        )
+        $m1: MeasuredHourlyWeatherData(
+            date == LocalDateTime.now().plusHours(1).minusDays(1).toLocalDate(),
+            hour == LocalTime.now().plusHours(1).getHour(),
+            $t1: temperature
+        )
+        $m2: MeasuredHourlyWeatherData(
+            date == LocalDateTime.now().plusHours(1).minusDays(2).toLocalDate(),
+            hour == LocalTime.now().plusHours(1).getHour(),
+            $t2: temperature > $t1
+        )
+        $m3: MeasuredHourlyWeatherData(
+            date == LocalDateTime.now().plusHours(1).minusDays(3).toLocalDate(),
+            hour == LocalTime.now().plusHours(1).getHour(),
+            $t3: temperature > $t2
+        )
+        $trendModifier: Double() from ((( ($t1 - $t2) * 1.5 + ($t2 - $t3) * 0.5 ) / 2) * 1.5)
+    then
+        modify($p) {
+            addTemperature($trendModifier)
+        }
+        System.out.println("Temperature after trend: " + $p.getTemperature());
+end
