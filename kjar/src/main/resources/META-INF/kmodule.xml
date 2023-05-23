@@ -1,9 +1,5 @@
 <kmodule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://jboss.org/kie/6.0.0/kmodule">
-    <kbase name="rules" packages="com.weatherforecast">
-		<ksession name="k-session"/>
-	</kbase>
-
-	<kbase name="forecast" packages="forecast">
-		<ksession name="k-session-forecast"/>
+    <kbase name="temperatureForward" packages="forward">
+		<ksession name="temperatureForwardSession"/>
 	</kbase>
 </kmodule>

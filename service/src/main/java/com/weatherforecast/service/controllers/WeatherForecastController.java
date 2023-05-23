@@ -16,9 +16,8 @@ import javax.validation.Valid;
 public class WeatherForecastController {
     private final WeatherForecastService wfService;
 
-    @PostMapping
-    public ResponseEntity<Boolean> forecastWeather(@RequestBody @Valid HourlyTemperatureRequest request) {
-        Boolean responseBody = wfService.printTemperaturesByTime(request);
-        return new ResponseEntity<>(responseBody, HttpStatus.OK);
+    @GetMapping
+    public ResponseEntity<Void> getTemperature() {
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }
