@@ -8,11 +8,13 @@ public class MeasuredHourlyWeatherData {
     LocalDate date;
     Integer hour;
     Double temperature;
+    Double precipitation;
 
-    public MeasuredHourlyWeatherData(LocalDateTime dateTime, Double temperature) {
+    public MeasuredHourlyWeatherData(LocalDateTime dateTime, Double temperature, Double precipitation) {
         this.date = dateTime.toLocalDate();
         this.hour = dateTime.toLocalTime().getHour();
         this.temperature = temperature;
+        this.precipitation = precipitation;
     }
 
     public LocalDate getDate() {
@@ -39,16 +41,24 @@ public class MeasuredHourlyWeatherData {
         this.temperature = temperature;
     }
 
+    public Double getPrecipitation() {
+        return precipitation;
+    }
+
+    public void setPrecipitation(Double precipitation) {
+        this.precipitation = precipitation;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         MeasuredHourlyWeatherData that = (MeasuredHourlyWeatherData) o;
-        return Objects.equals(date, that.date) && Objects.equals(hour, that.hour) && Objects.equals(temperature, that.temperature);
+        return Objects.equals(date, that.date) && Objects.equals(hour, that.hour) && Objects.equals(temperature, that.temperature) && Objects.equals(precipitation, that.precipitation);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(date, hour, temperature);
+        return Objects.hash(date, hour, temperature, precipitation);
     }
 }

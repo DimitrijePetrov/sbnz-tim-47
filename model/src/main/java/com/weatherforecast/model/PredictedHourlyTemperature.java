@@ -2,17 +2,15 @@ package com.weatherforecast.model;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.Map;
 import java.util.Objects;
 
-public class PredictedHourlyWeatherData {
+public class PredictedHourlyTemperature {
     LocalDate date;
     Integer hour;
     Double temperature;
     Boolean precipitationApplied;
 
-    public PredictedHourlyWeatherData(LocalDateTime dateTime, Double temperature) {
+    public PredictedHourlyTemperature(LocalDateTime dateTime, Double temperature) {
         this.date = dateTime.toLocalDate();
         this.hour = dateTime.toLocalTime().getHour();
         this.temperature = temperature;
@@ -55,7 +53,7 @@ public class PredictedHourlyWeatherData {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        PredictedHourlyWeatherData that = (PredictedHourlyWeatherData) o;
+        PredictedHourlyTemperature that = (PredictedHourlyTemperature) o;
         return Objects.equals(date, that.date) && Objects.equals(hour, that.hour) && Objects.equals(temperature, that.temperature) && Objects.equals(precipitationApplied, that.precipitationApplied);
     }
 
@@ -66,5 +64,14 @@ public class PredictedHourlyWeatherData {
 
     public void addTemperature(Double modifier) {
         this.temperature += modifier;
+    }
+
+    public void applyPrecipitationFactor(Double factor) {
+        if (this.temperature > 0.0) {
+            this.temperature *= factor;
+        } else {
+            this.temperature *= (1 / factor);
+        }
+        setPrecipitationApplied(true);
     }
 }

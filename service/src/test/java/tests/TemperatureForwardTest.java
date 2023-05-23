@@ -24,9 +24,9 @@ public class TemperatureForwardTest {
 
         LocalDateTime oneHourFromNow = LocalDateTime.now().plusHours(1);
 
-        MeasuredHourlyWeatherData m1 = new MeasuredHourlyWeatherData(oneHourFromNow.minusDays(1), 24.0);
-        MeasuredHourlyWeatherData m2 = new MeasuredHourlyWeatherData(oneHourFromNow.minusDays(2), 22.0);
-        MeasuredHourlyWeatherData m3 = new MeasuredHourlyWeatherData(oneHourFromNow.minusDays(3), 20.0);
+        MeasuredHourlyWeatherData m1 = new MeasuredHourlyWeatherData(oneHourFromNow.minusDays(1), 24.0, 11.0);
+        MeasuredHourlyWeatherData m2 = new MeasuredHourlyWeatherData(oneHourFromNow.minusDays(2), 22.0, 0.0);
+        MeasuredHourlyWeatherData m3 = new MeasuredHourlyWeatherData(oneHourFromNow.minusDays(3), 20.0, 11.2);
 
         kSession.insert(m1);
         kSession.insert(m2);
