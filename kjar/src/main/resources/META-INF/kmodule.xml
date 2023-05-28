@@ -1,5 +1,8 @@
 <kmodule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://jboss.org/kie/6.0.0/kmodule">
-    <kbase name="temperatureForward" packages="forward">
+	<kbase name="temperatureForward" packages="forward">
 		<ksession name="temperatureForwardSession"/>
+	</kbase>
+	<kbase name="precipitationForward" packages="forward">
+		<ksession name="precipitationForwardSession"/>
 	</kbase>
 </kmodule>

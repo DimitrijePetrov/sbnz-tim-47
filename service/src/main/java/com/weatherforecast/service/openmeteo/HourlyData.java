@@ -9,5 +9,8 @@ import java.util.List;
 public class HourlyData {
     List<LocalDateTime> time;
     List<Double> temperature_2m;
+    List<Integer> relativehumidity_2m;
     List<Double> precipitation;
+    List<Integer> cloudcover;
+    List<Double> windspeed_10m;
 }
