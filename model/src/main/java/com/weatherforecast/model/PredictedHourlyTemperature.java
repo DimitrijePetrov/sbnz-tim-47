@@ -10,6 +10,13 @@ public class PredictedHourlyTemperature {
     Double temperature;
     Boolean precipitationApplied;
 
+    public PredictedHourlyTemperature(LocalDateTime dateTime) {
+        this.date = dateTime.toLocalDate();
+        this.hour = dateTime.toLocalTime().getHour();
+        this.temperature = null;
+        this.precipitationApplied = false;
+    }
+
     public PredictedHourlyTemperature(LocalDateTime dateTime, Double temperature) {
         this.date = dateTime.toLocalDate();
         this.hour = dateTime.toLocalTime().getHour();
@@ -72,6 +79,5 @@ public class PredictedHourlyTemperature {
         } else {
             this.temperature *= (1 / factor);
         }
-        setPrecipitationApplied(true);
     }
 }

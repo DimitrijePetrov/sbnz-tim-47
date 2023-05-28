@@ -30,6 +30,6 @@ public class TemperatureForwardTest {
         kSession.insert(m2);
         kSession.insert(m3);
         int firedRules = kSession.fireAllRules();
-        MatcherAssert.assertThat(firedRules, equalTo(3));
+        MatcherAssert.assertThat(firedRules, equalTo(4));
     }
 }

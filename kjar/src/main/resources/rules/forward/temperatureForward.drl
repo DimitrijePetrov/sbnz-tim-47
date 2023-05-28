@@ -7,8 +7,23 @@ import java.time.LocalTime;
 import java.time.LocalDateTime;
 
 
+rule "create predicted temperature object if it does not exist for date and time"
+salience 6
+    when
+        not(
+            PredictedHourlyTemperature(
+                date == LocalDateTime.now().plusHours(1).toLocalDate(),
+                hour == LocalTime.now().plusHours(1).getHour(),
+                temperature == null
+            )
+        )
+    then
+        insert(new PredictedHourlyTemperature(LocalDateTime.now().plusHours(1)));
+        System.out.println("Object created");
+end
+
 rule "calculate average temperature for this hour in the past three days"
-salience 10
+salience 5
     when
         $m1: MeasuredHourlyWeatherData(
             date == LocalDateTime.now().plusHours(1).minusDays(1).toLocalDate(),
@@ -25,18 +40,27 @@ salience 10
             hour == LocalTime.now().plusHours(1).getHour(),
             $t3: temperature
         )
+        $p: PredictedHourlyTemperature(
+            date == LocalDateTime.now().plusHours(1).toLocalDate(),
+            hour == LocalTime.now().plusHours(1).getHour(),
+            temperature == null
+        )
         $average: Double() from (( $t1 * 1.6 + $t2 + $t3 * 0.4 ) / 3)
     then
         System.out.println("Base predicted temperature: " + $average);
-        insert(new PredictedHourlyTemperature(LocalDateTime.now().plusHours(1), $average));
+        modify($p){
+            setTemperature($average)
+        }
+//        insert(new PredictedHourlyTemperature(LocalDateTime.now().plusHours(1), $average));
 end
 
 rule "lower predicted temperature based on precipitation"
-salience 9
+salience 4
     when
         $p: PredictedHourlyTemperature(
             date == LocalDateTime.now().plusHours(1).toLocalDate(),
             hour == LocalTime.now().plusHours(1).getHour(),
+            temperature != null,
             precipitationApplied == false
         )
         $m1: MeasuredHourlyWeatherData(
@@ -51,17 +75,19 @@ salience 9
         )
     then
         modify($p){
-            applyPrecipitationFactor(0.9)
+            applyPrecipitationFactor(0.9),
+            setPrecipitationApplied(true)
         }
         System.out.println("Temperature after precipitation: " + $p.getTemperature());
 end
 
 rule "update precipitation applied flag"
-salience 8
+salience 3
     when
         $p: PredictedHourlyTemperature(
             date == LocalDateTime.now().plusHours(1).toLocalDate(),
             hour == LocalTime.now().plusHours(1).getHour(),
+            temperature != null,
             precipitationApplied == false
         )
     then
@@ -72,12 +98,13 @@ salience 8
 end
 
 rule "detect rising temperature trend"
-salience 7
+salience 2
 no-loop true
     when
         $p: PredictedHourlyTemperature(
             date == LocalDateTime.now().plusHours(1).toLocalDate(),
             hour == LocalTime.now().plusHours(1).getHour(),
+            temperature != null,
             precipitationApplied == true
         )
         $m1: MeasuredHourlyWeatherData(
@@ -104,12 +131,13 @@ no-loop true
 end
 
 rule "detect falling temperature trend"
-salience 6
+salience 1
 no-loop true
     when
         $p: PredictedHourlyTemperature(
             date == LocalDateTime.now().plusHours(1).toLocalDate(),
             hour == LocalTime.now().plusHours(1).getHour(),
+            temperature != null,
             precipitationApplied == true
         )
         $m1: MeasuredHourlyWeatherData(
