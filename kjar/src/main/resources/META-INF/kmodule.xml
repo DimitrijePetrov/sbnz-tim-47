@@ -5,4 +5,7 @@
 	<kbase name="precipitationForward" packages="forward">
 		<ksession name="precipitationForwardSession"/>
 	</kbase>
+	<kbase name="temperatureTemplate" packages="template">
+		<ksession name="temperatureTemplateSession"/>
+	</kbase>
 </kmodule>

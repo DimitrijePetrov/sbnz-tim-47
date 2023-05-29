@@ -1,0 +1,173 @@
+template header
+futureHours
+y
+m
+d
+h
+min
+
+package template;
+
+import com.weatherforecast.model.MeasuredHourlyWeatherData;
+import com.weatherforecast.model.PredictedHourlyTemperature;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.LocalDateTime;
+
+template "temperatureTemplate"
+
+rule "create predicted temperature object if it does not exist for date and time @{futureHours}"
+salience 6
+    when
+        not(
+            PredictedHourlyTemperature(
+                date == LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).toLocalDate(),
+                hour == LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).getHour()
+            )
+        )
+    then
+        insert(new PredictedHourlyTemperature(LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours})));
+        System.out.println("Object created for hour " + LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).getHour() + " of date " + LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).toLocalDate());
+end
+
+rule "calculate average temperature for this hour in the past three days @{futureHours}"
+salience 5
+    when
+        $m1: MeasuredHourlyWeatherData(
+            date == LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).minusDays(1).toLocalDate(),
+            hour == LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).getHour(),
+            $t1: temperature
+        )
+        $m2: MeasuredHourlyWeatherData(
+            date == LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).minusDays(2).toLocalDate(),
+            hour == LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).getHour(),
+            $t2: temperature
+        )
+        $m3: MeasuredHourlyWeatherData(
+            date == LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).minusDays(3).toLocalDate(),
+            hour == LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).getHour(),
+            $t3: temperature
+        )
+        $p: PredictedHourlyTemperature(
+            date == LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).toLocalDate(),
+            hour == LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).getHour(),
+            temperature == null
+        )
+        $average: Double() from (( $t1 * 1.6 + $t2 + $t3 * 0.4 ) / 3)
+    then
+        modify($p){
+            setTemperature($average)
+        }
+        System.out.println("Calculated base temperature for hour " + LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).getHour() + " of date " + LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).toLocalDate() + ": " + $average);
+end
+
+rule "lower predicted temperature based on precipitation @{futureHours}"
+salience 4
+    when
+        $p: PredictedHourlyTemperature(
+            date == LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).toLocalDate(),
+            hour == LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).getHour(),
+            temperature != null,
+            precipitationApplied == false
+        )
+        $m1: MeasuredHourlyWeatherData(
+            date == LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).minusDays(1).toLocalDate(),
+            hour == LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).getHour(),
+            precipitation > 1.0
+        )
+        $m2: MeasuredHourlyWeatherData(
+            date == LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).minusDays(2).toLocalDate(),
+            hour == LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).getHour(),
+            precipitation == 0.0
+        )
+    then
+        modify($p){
+            applyPrecipitationFactor(0.9),
+            setPrecipitationApplied(true)
+        }
+        System.out.println("Temperature after precipitation for hour " + LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).getHour() + " of date " + LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).toLocalDate() + ": " + $p.getTemperature());
+end
+
+rule "update precipitation applied flag @{futureHours}"
+salience 3
+    when
+        $p: PredictedHourlyTemperature(
+            date == LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).toLocalDate(),
+            hour == LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).getHour(),
+            temperature != null,
+            precipitationApplied == false
+        )
+    then
+        modify($p) {
+            setPrecipitationApplied(true)
+        }
+        System.out.println("Temperature not modified by precipitation for hour " + LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).getHour() + " of date " + LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).toLocalDate());
+end
+
+rule "detect rising temperature trend @{futureHours}"
+salience 2
+no-loop true
+    when
+        $p: PredictedHourlyTemperature(
+            date == LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).toLocalDate(),
+            hour == LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).getHour(),
+            temperature != null,
+            precipitationApplied == true
+        )
+        $m1: MeasuredHourlyWeatherData(
+            date == LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).minusDays(1).toLocalDate(),
+            hour == LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).getHour(),
+            $t1: temperature
+        )
+        $m2: MeasuredHourlyWeatherData(
+            date == LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).minusDays(2).toLocalDate(),
+            hour == LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).getHour(),
+            $t2: temperature < $t1
+        )
+        $m3: MeasuredHourlyWeatherData(
+            date == LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).minusDays(3).toLocalDate(),
+            hour == LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).getHour(),
+            $t3: temperature < $t2
+        )
+        $trendModifier: Double() from ((( ($t1 - $t2) * 1.5 + ($t2 - $t3) * 0.5 ) / 2) * 1.5)
+    then
+        modify($p) {
+            addTemperature($trendModifier)
+        }
+        System.out.println("Temperature after trend for hour " + LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).getHour() + " of date " + LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).toLocalDate() + ": " + $p.getTemperature());
+end
+
+rule "detect falling temperature trend @{futureHours}"
+salience 1
+no-loop true
+    when
+        $p: PredictedHourlyTemperature(
+            date == LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).toLocalDate(),
+            hour == LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).getHour(),
+            temperature != null,
+            precipitationApplied == true
+        )
+        $m1: MeasuredHourlyWeatherData(
+            date == LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).minusDays(1).toLocalDate(),
+            hour == LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).getHour(),
+            $t1: temperature
+        )
+        $m2: MeasuredHourlyWeatherData(
+            date == LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).minusDays(2).toLocalDate(),
+            hour == LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).getHour(),
+            $t2: temperature > $t1
+        )
+        $m3: MeasuredHourlyWeatherData(
+            date == LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).minusDays(3).toLocalDate(),
+            hour == LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).getHour(),
+            $t3: temperature > $t2
+        )
+        $trendModifier: Double() from ((( ($t1 - $t2) * 1.5 + ($t2 - $t3) * 0.5 ) / 2) * 1.5)
+    then
+        modify($p) {
+            addTemperature($trendModifier)
+        }
+        System.out.println("Temperature after trend for hour " + LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).getHour() + " of date " + LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).toLocalDate() + ": " + $p.getTemperature());
+end
+
+end template
