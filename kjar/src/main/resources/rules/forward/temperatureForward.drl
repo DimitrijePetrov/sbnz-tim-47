@@ -12,13 +12,12 @@ salience 6
     when
         not(
             PredictedHourlyTemperature(
-                date == LocalDateTime.now().plusHours(1).toLocalDate(),
-                hour == LocalTime.now().plusHours(1).getHour(),
-                temperature == null
+                date == LocalDateTime.parse("2023-05-29T20:13:24.089848700").plusHours(1).toLocalDate(),
+                hour == LocalDateTime.parse("2023-05-29T20:13:24.089848700").plusHours(1).getHour()
             )
         )
     then
-        insert(new PredictedHourlyTemperature(LocalDateTime.now().plusHours(1)));
+        insert(new PredictedHourlyTemperature(LocalDateTime.parse("2023-05-29T20:13:24.089848700").plusHours(1)));
         System.out.println("Object created");
 end
 
@@ -26,23 +25,23 @@ rule "calculate average temperature for this hour in the past three days"
 salience 5
     when
         $m1: MeasuredHourlyWeatherData(
-            date == LocalDateTime.now().plusHours(1).minusDays(1).toLocalDate(),
-            hour == LocalTime.now().plusHours(1).getHour(),
+            date == LocalDateTime.parse("2023-05-29T20:13:24.089848700").plusHours(1).minusDays(1).toLocalDate(),
+            hour == LocalDateTime.parse("2023-05-29T20:13:24.089848700").plusHours(1).getHour(),
             $t1: temperature
         )
         $m2: MeasuredHourlyWeatherData(
-            date == LocalDateTime.now().plusHours(1).minusDays(2).toLocalDate(),
-            hour == LocalTime.now().plusHours(1).getHour(),
+            date == LocalDateTime.parse("2023-05-29T20:13:24.089848700").plusHours(1).minusDays(2).toLocalDate(),
+            hour == LocalDateTime.parse("2023-05-29T20:13:24.089848700").plusHours(1).getHour(),
             $t2: temperature
         )
         $m3: MeasuredHourlyWeatherData(
-            date == LocalDateTime.now().plusHours(1).minusDays(3).toLocalDate(),
-            hour == LocalTime.now().plusHours(1).getHour(),
+            date == LocalDateTime.parse("2023-05-29T20:13:24.089848700").plusHours(1).minusDays(3).toLocalDate(),
+            hour == LocalDateTime.parse("2023-05-29T20:13:24.089848700").plusHours(1).getHour(),
             $t3: temperature
         )
         $p: PredictedHourlyTemperature(
-            date == LocalDateTime.now().plusHours(1).toLocalDate(),
-            hour == LocalTime.now().plusHours(1).getHour(),
+            date == LocalDateTime.parse("2023-05-29T20:13:24.089848700").plusHours(1).toLocalDate(),
+            hour == LocalDateTime.parse("2023-05-29T20:13:24.089848700").plusHours(1).getHour(),
             temperature == null
         )
         $average: Double() from (( $t1 * 1.6 + $t2 + $t3 * 0.4 ) / 3)
@@ -51,26 +50,25 @@ salience 5
         modify($p){
             setTemperature($average)
         }
-//        insert(new PredictedHourlyTemperature(LocalDateTime.now().plusHours(1), $average));
 end
 
 rule "lower predicted temperature based on precipitation"
 salience 4
     when
         $p: PredictedHourlyTemperature(
-            date == LocalDateTime.now().plusHours(1).toLocalDate(),
-            hour == LocalTime.now().plusHours(1).getHour(),
+            date == LocalDateTime.parse("2023-05-29T20:13:24.089848700").plusHours(1).toLocalDate(),
+            hour == LocalDateTime.parse("2023-05-29T20:13:24.089848700").plusHours(1).getHour(),
             temperature != null,
             precipitationApplied == false
         )
         $m1: MeasuredHourlyWeatherData(
-            date == LocalDateTime.now().plusHours(1).minusDays(1).toLocalDate(),
-            hour == LocalTime.now().plusHours(1).getHour(),
+            date == LocalDateTime.parse("2023-05-29T20:13:24.089848700").plusHours(1).minusDays(1).toLocalDate(),
+            hour == LocalDateTime.parse("2023-05-29T20:13:24.089848700").plusHours(1).getHour(),
             precipitation > 1.0
         )
         $m2: MeasuredHourlyWeatherData(
-            date == LocalDateTime.now().plusHours(1).minusDays(2).toLocalDate(),
-            hour == LocalTime.now().plusHours(1).getHour(),
+            date == LocalDateTime.parse("2023-05-29T20:13:24.089848700").plusHours(1).minusDays(2).toLocalDate(),
+            hour == LocalDateTime.parse("2023-05-29T20:13:24.089848700").plusHours(1).getHour(),
             precipitation == 0.0
         )
     then
@@ -85,8 +83,8 @@ rule "update precipitation applied flag"
 salience 3
     when
         $p: PredictedHourlyTemperature(
-            date == LocalDateTime.now().plusHours(1).toLocalDate(),
-            hour == LocalTime.now().plusHours(1).getHour(),
+            date == LocalDateTime.parse("2023-05-29T20:13:24.089848700").plusHours(1).toLocalDate(),
+            hour == LocalDateTime.parse("2023-05-29T20:13:24.089848700").plusHours(1).getHour(),
             temperature != null,
             precipitationApplied == false
         )
@@ -102,24 +100,24 @@ salience 2
 no-loop true
     when
         $p: PredictedHourlyTemperature(
-            date == LocalDateTime.now().plusHours(1).toLocalDate(),
-            hour == LocalTime.now().plusHours(1).getHour(),
+            date == LocalDateTime.parse("2023-05-29T20:13:24.089848700").plusHours(1).toLocalDate(),
+            hour == LocalDateTime.parse("2023-05-29T20:13:24.089848700").plusHours(1).getHour(),
             temperature != null,
             precipitationApplied == true
         )
         $m1: MeasuredHourlyWeatherData(
-            date == LocalDateTime.now().plusHours(1).minusDays(1).toLocalDate(),
-            hour == LocalTime.now().plusHours(1).getHour(),
+            date == LocalDateTime.parse("2023-05-29T20:13:24.089848700").plusHours(1).minusDays(1).toLocalDate(),
+            hour == LocalDateTime.parse("2023-05-29T20:13:24.089848700").plusHours(1).getHour(),
             $t1: temperature
         )
         $m2: MeasuredHourlyWeatherData(
-            date == LocalDateTime.now().plusHours(1).minusDays(2).toLocalDate(),
-            hour == LocalTime.now().plusHours(1).getHour(),
+            date == LocalDateTime.parse("2023-05-29T20:13:24.089848700").plusHours(1).minusDays(2).toLocalDate(),
+            hour == LocalDateTime.parse("2023-05-29T20:13:24.089848700").plusHours(1).getHour(),
             $t2: temperature < $t1
         )
         $m3: MeasuredHourlyWeatherData(
-            date == LocalDateTime.now().plusHours(1).minusDays(3).toLocalDate(),
-            hour == LocalTime.now().plusHours(1).getHour(),
+            date == LocalDateTime.parse("2023-05-29T20:13:24.089848700").plusHours(1).minusDays(3).toLocalDate(),
+            hour == LocalDateTime.parse("2023-05-29T20:13:24.089848700").plusHours(1).getHour(),
             $t3: temperature < $t2
         )
         $trendModifier: Double() from ((( ($t1 - $t2) * 1.5 + ($t2 - $t3) * 0.5 ) / 2) * 1.5)
@@ -135,24 +133,24 @@ salience 1
 no-loop true
     when
         $p: PredictedHourlyTemperature(
-            date == LocalDateTime.now().plusHours(1).toLocalDate(),
-            hour == LocalTime.now().plusHours(1).getHour(),
+            date == LocalDateTime.parse("2023-05-29T20:13:24.089848700").plusHours(1).toLocalDate(),
+            hour == LocalDateTime.parse("2023-05-29T20:13:24.089848700").plusHours(1).getHour(),
             temperature != null,
             precipitationApplied == true
         )
         $m1: MeasuredHourlyWeatherData(
-            date == LocalDateTime.now().plusHours(1).minusDays(1).toLocalDate(),
-            hour == LocalTime.now().plusHours(1).getHour(),
+            date == LocalDateTime.parse("2023-05-29T20:13:24.089848700").plusHours(1).minusDays(1).toLocalDate(),
+            hour == LocalDateTime.parse("2023-05-29T20:13:24.089848700").plusHours(1).getHour(),
             $t1: temperature
         )
         $m2: MeasuredHourlyWeatherData(
-            date == LocalDateTime.now().plusHours(1).minusDays(2).toLocalDate(),
-            hour == LocalTime.now().plusHours(1).getHour(),
+            date == LocalDateTime.parse("2023-05-29T20:13:24.089848700").plusHours(1).minusDays(2).toLocalDate(),
+            hour == LocalDateTime.parse("2023-05-29T20:13:24.089848700").plusHours(1).getHour(),
             $t2: temperature > $t1
         )
         $m3: MeasuredHourlyWeatherData(
-            date == LocalDateTime.now().plusHours(1).minusDays(3).toLocalDate(),
-            hour == LocalTime.now().plusHours(1).getHour(),
+            date == LocalDateTime.parse("2023-05-29T20:13:24.089848700").plusHours(1).minusDays(3).toLocalDate(),
+            hour == LocalDateTime.parse("2023-05-29T20:13:24.089848700").plusHours(1).getHour(),
             $t3: temperature > $t2
         )
         $trendModifier: Double() from ((( ($t1 - $t2) * 1.5 + ($t2 - $t3) * 0.5 ) / 2) * 1.5)
