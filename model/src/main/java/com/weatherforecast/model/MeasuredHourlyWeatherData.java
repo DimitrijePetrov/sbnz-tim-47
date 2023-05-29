@@ -1,10 +1,20 @@
 package com.weatherforecast.model;
 
+import org.kie.api.definition.type.Expires;
+import org.kie.api.definition.type.Role;
+import org.kie.api.definition.type.Timestamp;
+
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.Objects;
 
-public class MeasuredHourlyWeatherData {
+@Role(Role.Type.EVENT)
+@Timestamp("executionTime")
+@Expires("3d1m")
+public class MeasuredHourlyWeatherData implements Serializable {
+    Date executionTime;
     LocalDate date;
     Integer hour;
     Double temperature;
@@ -14,6 +24,7 @@ public class MeasuredHourlyWeatherData {
     Double windSpeed;
 
     public MeasuredHourlyWeatherData(LocalDateTime dateTime, Double temperature, Integer humidity, Double precipitation, Integer cloudCover, Double windSpeed) {
+        this.executionTime = new Date();
         this.date = dateTime.toLocalDate();
         this.hour = dateTime.toLocalTime().getHour();
         this.temperature = temperature;
@@ -21,6 +32,14 @@ public class MeasuredHourlyWeatherData {
         this.precipitation = precipitation;
         this.cloudCover = cloudCover;
         this.windSpeed = windSpeed;
+    }
+
+    public Date getExecutionTime() {
+        return executionTime;
+    }
+
+    public void setExecutionTime(Date executionTime) {
+        this.executionTime = executionTime;
     }
 
     public LocalDate getDate() {
