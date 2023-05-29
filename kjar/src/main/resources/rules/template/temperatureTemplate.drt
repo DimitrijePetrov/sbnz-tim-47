@@ -27,7 +27,7 @@ salience 6
         )
     then
         insert(new PredictedHourlyTemperature(LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours})));
-        System.out.println("Object created for hour " + LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).getHour() + " of date " + LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).toLocalDate());
+        //System.out.println("Object created for hour " + LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).getHour() + " of date " + LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).toLocalDate());
 end
 
 rule "calculate average temperature for this hour in the past three days @{futureHours}"
@@ -58,7 +58,7 @@ salience 5
         modify($p){
             setTemperature($average)
         }
-        System.out.println("Calculated base temperature for hour " + LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).getHour() + " of date " + LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).toLocalDate() + ": " + $average);
+        //System.out.println("Calculated base temperature for hour " + LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).getHour() + " of date " + LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).toLocalDate() + ": " + $average);
 end
 
 rule "lower predicted temperature based on precipitation @{futureHours}"
@@ -85,7 +85,7 @@ salience 4
             applyPrecipitationFactor(0.9),
             setPrecipitationApplied(true)
         }
-        System.out.println("Temperature after precipitation for hour " + LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).getHour() + " of date " + LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).toLocalDate() + ": " + $p.getTemperature());
+        //System.out.println("Temperature after precipitation for hour " + LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).getHour() + " of date " + LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).toLocalDate() + ": " + $p.getTemperature());
 end
 
 rule "update precipitation applied flag @{futureHours}"
@@ -101,7 +101,7 @@ salience 3
         modify($p) {
             setPrecipitationApplied(true)
         }
-        System.out.println("Temperature not modified by precipitation for hour " + LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).getHour() + " of date " + LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).toLocalDate());
+        //System.out.println("Temperature not modified by precipitation for hour " + LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).getHour() + " of date " + LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).toLocalDate());
 end
 
 rule "detect rising temperature trend @{futureHours}"
@@ -134,7 +134,7 @@ no-loop true
         modify($p) {
             addTemperature($trendModifier)
         }
-        System.out.println("Temperature after trend for hour " + LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).getHour() + " of date " + LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).toLocalDate() + ": " + $p.getTemperature());
+        //System.out.println("Temperature after trend for hour " + LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).getHour() + " of date " + LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).toLocalDate() + ": " + $p.getTemperature());
 end
 
 rule "detect falling temperature trend @{futureHours}"
@@ -167,7 +167,7 @@ no-loop true
         modify($p) {
             addTemperature($trendModifier)
         }
-        System.out.println("Temperature after trend for hour " + LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).getHour() + " of date " + LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).toLocalDate() + ": " + $p.getTemperature());
+        //System.out.println("Temperature after trend for hour " + LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).getHour() + " of date " + LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).toLocalDate() + ": " + $p.getTemperature());
 end
 
 end template

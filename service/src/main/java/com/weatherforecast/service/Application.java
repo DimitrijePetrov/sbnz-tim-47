@@ -23,16 +23,6 @@ public class Application {
 	public RestTemplate restTemplate() {
 		return new RestTemplate();
 	}
-   
-//    @Bean
-//	public KieSession kieSession() {
-//		KieServices ks = KieServices.Factory.get();
-//		KieContainer kContainer = ks
-//				.newKieContainer(ks.newReleaseId("com.weatherforecast", "kjar", "0.0.1-SNAPSHOT"));
-//		KieScanner kScanner = ks.newKieScanner(kContainer);
-//		kScanner.start(1000);
-//		return kContainer.newKieSession("temperatureForwardSession");
-//	}
 
 	@Bean
 	public KieContainer kieContainer() {
@@ -42,8 +32,5 @@ public class Application {
 		kScanner.start(1000);
 		return kContainer;
 	}
-		
-//	@Override
-//	public void run(String... args) throws Exception {}
 
 }

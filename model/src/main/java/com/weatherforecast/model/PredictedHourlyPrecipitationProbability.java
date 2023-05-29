@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Objects;
 
 public class PredictedHourlyPrecipitationProbability {
     LocalDate date;
@@ -55,6 +56,29 @@ public class PredictedHourlyPrecipitationProbability {
 
     public void setModifiersApplied(Boolean modifiersApplied) {
         this.modifiersApplied = modifiersApplied;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        PredictedHourlyPrecipitationProbability that = (PredictedHourlyPrecipitationProbability) o;
+        return Objects.equals(date, that.date) && Objects.equals(hour, that.hour) && Objects.equals(precipitationProbability, that.precipitationProbability) && Objects.equals(modifiersApplied, that.modifiersApplied);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(date, hour, precipitationProbability, modifiersApplied);
+    }
+
+    @Override
+    public String toString() {
+        return "PredictedHourlyPrecipitationProbability{" +
+                "date=" + date +
+                ", hour=" + hour +
+                ", precipitationProbability=" + precipitationProbability +
+                ", modifiersApplied=" + modifiersApplied +
+                '}';
     }
 
     public void addHumidityModifier(Integer humidity) {

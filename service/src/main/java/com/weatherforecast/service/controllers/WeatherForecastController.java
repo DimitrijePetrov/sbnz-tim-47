@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.FileNotFoundException;
 import java.util.List;
 
 @RestController
@@ -17,7 +18,7 @@ public class WeatherForecastController {
     private final WeatherForecastService wfService;
 
     @GetMapping(value = "/forecast")
-    public ResponseEntity<List<HourlyForecastResponse>> getForecast() {
+    public ResponseEntity<List<HourlyForecastResponse>> getForecast() throws FileNotFoundException {
         return new ResponseEntity<>(wfService.getForecast(), HttpStatus.OK);
     }
 
