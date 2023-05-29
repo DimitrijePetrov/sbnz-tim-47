@@ -91,13 +91,13 @@ export const CurrentWeather = () => {
                         </Flex>
                         <Flex flexDirection='column'>
                             <Text color='#4a6fa1' fontWeight={700}>
-                                {weather?.wind}km/h
+                                {weather?.wind} km/h
                             </Text>
                             <Text color='#4a6fa1' fontWeight={700}>
-                                {weather?.humidity}%
+                                {weather?.humidity} %
                             </Text>
                             <Text color='#4a6fa1' fontWeight={700}>
-                                {weather?.pressure}hPa
+                                {weather?.pressure} hPa
                             </Text>
                         </Flex>
                     </Flex>
