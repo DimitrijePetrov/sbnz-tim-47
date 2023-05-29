@@ -30,7 +30,7 @@ export const ForecastCard = ({ time, temperature, precipitation }: ForecastHour)
                         {precipitation}%
                     </Text>
                     <Text fontWeight={700} color='#4a6fa1' margin='0'>
-                        {temperature + '°'}
+                        {(Math.round(temperature * 100) / 100).toFixed(1)}°
                     </Text>
                 </Flex>
             </Flex>
