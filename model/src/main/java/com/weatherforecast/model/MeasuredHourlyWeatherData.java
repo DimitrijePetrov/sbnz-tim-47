@@ -7,6 +7,7 @@ import org.kie.api.definition.type.Timestamp;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.Objects;
 
@@ -24,7 +25,7 @@ public class MeasuredHourlyWeatherData implements Serializable {
     Double windSpeed;
 
     public MeasuredHourlyWeatherData(LocalDateTime dateTime, Double temperature, Integer humidity, Double precipitation, Integer cloudCover, Double windSpeed) {
-        this.executionTime = new Date();
+        this.executionTime = Date.from(dateTime.atZone(ZoneId.systemDefault()).toInstant());
         this.date = dateTime.toLocalDate();
         this.hour = dateTime.toLocalTime().getHour();
         this.temperature = temperature;
@@ -109,5 +110,19 @@ public class MeasuredHourlyWeatherData implements Serializable {
     @Override
     public int hashCode() {
         return Objects.hash(date, hour, temperature, humidity, precipitation, cloudCover, windSpeed);
+    }
+
+    @Override
+    public String toString() {
+        return "MeasuredHourlyWeatherData{" +
+                "executionTime=" + executionTime +
+                ", date=" + date +
+                ", hour=" + hour +
+                ", temperature=" + temperature +
+                ", humidity=" + humidity +
+                ", precipitation=" + precipitation +
+                ", cloudCover=" + cloudCover +
+                ", windSpeed=" + windSpeed +
+                '}';
     }
 }

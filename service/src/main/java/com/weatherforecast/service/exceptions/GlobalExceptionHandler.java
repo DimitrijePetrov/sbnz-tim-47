@@ -18,6 +18,11 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(getExceptionResponse(ex.getMessage(), HttpStatus.BAD_REQUEST), HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler({NoResponseFromAPIException.class})
+    public ResponseEntity<ExceptionResponse> handleNoResponseFromAPIException(RuntimeException ex, WebRequest request) {
+        return new ResponseEntity<>(getExceptionResponse(ex.getMessage(), HttpStatus.NOT_FOUND), HttpStatus.NOT_FOUND);
+    }
+
     @ExceptionHandler({MethodArgumentNotValidException.class})
     public ResponseEntity<ExceptionResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex, WebRequest request) {
         return new ResponseEntity<>(getExceptionResponse(Objects.requireNonNull(ex.getFieldError()).getDefaultMessage(), HttpStatus.BAD_REQUEST), HttpStatus.BAD_REQUEST);
