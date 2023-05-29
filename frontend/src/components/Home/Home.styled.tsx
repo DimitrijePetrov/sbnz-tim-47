@@ -13,7 +13,6 @@ export const HomeStyled = styled.div`
 
 export const MainStyled = styled.div`
     width: 900px;
-    height: 600px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;

@@ -9,6 +9,7 @@ export const ForecastCardStyled = styled.div`
 `
 
 export const ForestCardIconStyled = styled.div`
+    margin-bottom: 16px;
     svg {
         width: 64px;
         height: 64px;

@@ -20,16 +20,22 @@ export type Weather =
     | 'Sunny'
     | 'Thunderstorm'
 
-export const getWeather = (code: number): Weather => {
+export const getWeather = (code: number): Weather | undefined => {
     if (CLOUDY.includes(code)) return 'Cloudy'
-    if (CLOUDY_SUNNY.includes(code)) return 'Cloudy Sunny'
-    if (RAINY.includes(code)) return 'Rainy'
-    if (RAINY_SUNNY.includes(code)) return 'Rainy Sunny'
-    if (SNOWY.includes(code)) return 'Snowy'
-    if (SNOWY_SUNNY.includes(code)) return 'Snowy Sunny'
-    if (SUNNY.includes(code)) return 'Sunny'
-    if (THUNDERSTORM.includes(code)) return 'Thunderstorm'
-    return 'Sunny'
+    else if (CLOUDY_SUNNY.includes(code)) return 'Cloudy Sunny'
+    else if (RAINY.includes(code)) return 'Rainy'
+    else if (RAINY_SUNNY.includes(code)) return 'Rainy Sunny'
+    else if (SNOWY.includes(code)) return 'Snowy'
+    else if (SNOWY_SUNNY.includes(code)) return 'Snowy Sunny'
+    else if (SUNNY.includes(code)) return 'Sunny'
+    else if (THUNDERSTORM.includes(code)) return 'Thunderstorm'
+}
+
+export const getForecastWeather = (precipitation: number): Weather => {
+    if (precipitation === 0) return 'Sunny'
+    else if (precipitation < 30) return 'Rainy Sunny'
+    else if (precipitation < 80) return 'Rainy'
+    else return 'Thunderstorm'
 }
 
 export const WEATHER_MAP: Record<Weather, ReactElement> = {

@@ -4,8 +4,9 @@ import { Flex, Text } from '@chakra-ui/react'
 import { BiDroplet, BiWind } from 'react-icons/bi'
 import { FiArrowDown, FiArrowUp } from 'react-icons/fi'
 import { TbGauge } from 'react-icons/tb'
-import { useReadCurrentWeather } from '../../repositories'
+import { useReadCurrentWeather, useReadWarnings } from '../../repositories'
 import { getWeather, Weather, WEATHER_MAP } from '../../util'
+import { Warning } from '../Warning/Warning'
 
 interface CurrentWeatherData {
     temperature: number
@@ -14,12 +15,13 @@ interface CurrentWeatherData {
     wind: number
     humidity: number
     pressure: number
-    name: Weather
+    name?: Weather
 }
 
 export const CurrentWeather = () => {
     const [weather, setWeather] = useState<CurrentWeatherData>()
     const { data } = useReadCurrentWeather()
+    const { data: warnings } = useReadWarnings()
 
     useEffect(() => {
         if (!data) return
@@ -40,14 +42,14 @@ export const CurrentWeather = () => {
             <Text fontWeight={600} margin={0} color='#7b96ae'>
                 Current Weather
             </Text>
-            <Flex justifyContent='space-between' alignItems='center' height='100%' margin='0 128px'>
+            <Flex justifyContent='space-between' alignItems='center' margin='24px 100px'>
                 <Flex flexDirection='column'>
                     <Text fontWeight={600} color='#4a6fa1' fontSize='24px'>
                         Novi Sad
                     </Text>
                     <Flex alignItems='center' gap='32px' height='100px'>
                         <CurrentWeatherIconStyled>
-                            {weather ? WEATHER_MAP[weather?.name] : null}
+                            {weather?.name ? WEATHER_MAP[weather?.name] : null}
                         </CurrentWeatherIconStyled>
                         <Text fontSize='72px' color='#4a6fa1'>
                             {weather?.temperature}°
@@ -100,6 +102,11 @@ export const CurrentWeather = () => {
                         </Flex>
                     </Flex>
                 </Flex>
+            </Flex>
+            <Flex flexDirection='column' gap='8px'>
+                {warnings?.map((warning, index) => (
+                    <Warning key={index}>{warning}</Warning>
+                ))}
             </Flex>
         </CurrentWeatherStyled>
     )

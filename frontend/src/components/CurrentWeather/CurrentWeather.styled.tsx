@@ -1,7 +1,6 @@
 import styled from 'styled-components'
 
 export const CurrentWeatherStyled = styled.div`
-    height: 65%;
     background-color: #eee;
     border-radius: 12px;
     padding: 24px;
