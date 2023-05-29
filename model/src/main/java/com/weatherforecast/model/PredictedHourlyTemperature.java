@@ -69,6 +69,16 @@ public class PredictedHourlyTemperature {
         return Objects.hash(date, hour, temperature, precipitationApplied);
     }
 
+    @Override
+    public String toString() {
+        return "PredictedHourlyTemperature{" +
+                "date=" + date +
+                ", hour=" + hour +
+                ", temperature=" + temperature +
+                ", precipitationApplied=" + precipitationApplied +
+                '}';
+    }
+
     public void addTemperature(Double modifier) {
         this.temperature += modifier;
     }
@@ -80,4 +90,6 @@ public class PredictedHourlyTemperature {
             this.temperature *= (1 / factor);
         }
     }
+
+
 }

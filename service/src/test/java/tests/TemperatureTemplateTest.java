@@ -18,17 +18,10 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 import static org.hamcrest.Matchers.equalTo;
 
 public class TemperatureTemplateTest {
-    @Test
-    public void testPredictTemperatureForNext24Hours() throws FileNotFoundException {
-        LocalDateTime dateTime = LocalDateTime.parse("2023-05-29T20:13:24.089848700");
-        System.out.println(dateTime.getHour());
-    }
-
     @Test
     public void testPredictTemperatureForNext24HoursContinually() throws FileNotFoundException {
         for (int i = 0; i < 10; i++) {

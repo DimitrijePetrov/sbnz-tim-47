@@ -13,7 +13,7 @@ import org.springframework.web.client.RestTemplate;
 
 @SpringBootApplication
 @EnableScheduling
-public class Application implements CommandLineRunner {
+public class Application {
 
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
@@ -23,18 +23,14 @@ public class Application implements CommandLineRunner {
 	public RestTemplate restTemplate() {
 		return new RestTemplate();
 	}
-   
-    @Bean
-	public KieSession kieSession() {
+
+	@Bean
+	public KieContainer kieContainer() {
 		KieServices ks = KieServices.Factory.get();
-		KieContainer kContainer = ks
-				.newKieContainer(ks.newReleaseId("com.weatherforecast", "kjar", "0.0.1-SNAPSHOT"));
+		KieContainer kContainer = ks.newKieContainer(ks.newReleaseId("com.weatherforecast", "kjar", "0.0.1-SNAPSHOT"));
 		KieScanner kScanner = ks.newKieScanner(kContainer);
 		kScanner.start(1000);
-		return kContainer.newKieSession("temperatureForwardSession");
+		return kContainer;
 	}
-		
-	@Override
-	public void run(String... args) throws Exception {}
 
 }
