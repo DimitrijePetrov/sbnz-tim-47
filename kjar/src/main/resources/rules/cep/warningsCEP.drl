@@ -1,0 +1,37 @@
+package rules.cep;
+
+import com.weatherforecast.model.MeasuredHourlyWeatherData;
+import com.weatherforecast.model.SevereWeatherWarning;
+
+rule "wind storm warning"
+when
+    Number(intValue >= 3) from accumulate(
+        $m : MeasuredHourlyWeatherData($windSpeed: windSpeed > 30.0) over window:time(3h),
+        count($m)
+    )
+then
+    insert(new SevereWeatherWarning("Wind Storm Warning: High wind speeds detected for each of the last 3 hours!"));
+    System.out.println("Wind Storm Warning: High wind speeds detected for each of the last 3 hours!");
+end
+
+rule "flood warning"
+when
+    Number(intValue >= 3) from accumulate(
+        $m : MeasuredHourlyWeatherData($precipitation: precipitation > 11.0) over window:time(3h),
+        count($m)
+    )
+then
+    insert(new SevereWeatherWarning("Flood Warning: Heavy rainfall detected for each of the last 3 hours!"));
+    System.out.println("Flood Warning: Heavy rainfall detected for each of the last 3 hours!");
+end
+
+rule "heat wave warning"
+when
+    Number(intValue >= 3) from accumulate(
+        $m : MeasuredHourlyWeatherData($temperature: temperature > 35.0) over window:time(3h),
+        count($m)
+    )
+then
+    insert(new SevereWeatherWarning("Heat Wave Warning: High temperatures detected for each of the last 3 hours!"));
+    System.out.println("Heat Wave Warning: High temperatures detected for each of the last 3 hours!");
+end
