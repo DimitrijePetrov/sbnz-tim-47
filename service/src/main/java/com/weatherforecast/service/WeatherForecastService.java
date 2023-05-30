@@ -96,8 +96,8 @@ public class WeatherForecastService {
         List<Double> windSpeed = response.getHourly().getWindspeed_10m().subList(allHours.size() - 3, allHours.size());
 
         for (int i = 0; i < lastThreeHours.size(); i++) {
-//            MeasuredHourlyWeatherData m = new MeasuredHourlyWeatherData(lastThreeHours.get(i), 36.0, 50, 12.0, 50, 31.1);
-            MeasuredHourlyWeatherData m = new MeasuredHourlyWeatherData(lastThreeHours.get(i), temperatures.get(i), humidity.get(i), precipitation.get(i), cloudCover.get(i), windSpeed.get(i));
+            MeasuredHourlyWeatherData m = new MeasuredHourlyWeatherData(lastThreeHours.get(i), 36.0, 50, 12.0, 50, 31.1);
+//            MeasuredHourlyWeatherData m = new MeasuredHourlyWeatherData(lastThreeHours.get(i), temperatures.get(i), humidity.get(i), precipitation.get(i), cloudCover.get(i), windSpeed.get(i));
             kieSession.insert(m);
             kieSession.fireAllRules();
             clock.advanceTime(1, TimeUnit.HOURS);
