@@ -6,6 +6,7 @@ import com.weatherforecast.model.PredictedHourlyTemperature;
 import com.weatherforecast.model.SevereWeatherWarning;
 import com.weatherforecast.service.controllers.responses.HourlyForecastResponse;
 import com.weatherforecast.service.exceptions.NoResponseFromAPIException;
+import com.weatherforecast.service.openmeteo.HourlyData;
 import com.weatherforecast.service.openmeteo.WeatherForecastResponse;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -47,75 +48,30 @@ public class WeatherForecastService {
     String currentDayUrl;
 
     private static final String TEMPERATURE_TEMPLATE_FILE_PATH = "\\kjar\\src\\main\\resources\\rules\\template\\temperatureTemplate.drt";
-    private static final String PRECIPITATION_FORWARD_SESSION_NAME = "precipitationForwardSession";
+    private static final String PRECIPITATION_TEMPLATE_FILE_PATH = "\\kjar\\src\\main\\resources\\rules\\template\\precipitationTemplate.drt";
+//    private static final String PRECIPITATION_FORWARD_SESSION_NAME = "precipitationForwardSession";
     private static final String WARNINGS_CEP_SESSION_NAME = "warningCEPSession";
 
     public List<HourlyForecastResponse> getForecast() throws FileNotFoundException {
         WeatherForecastResponse response = restTemplate.getForObject(currentDayUrl, WeatherForecastResponse.class);
         if (response == null) throw new NoResponseFromAPIException("Forecast data from Open-Meteo API is null.");
 
-        KieSession temperatureTemplateKieSession = createTemperatureTemplateKieSession(LocalDateTime.now());
-        temperatureTemplateKieSession.fireAllRules();
-        KieSession precipitationKieSession = kieContainer.newKieSession(PRECIPITATION_FORWARD_SESSION_NAME);
-        precipitationKieSession.fireAllRules();
-
-        LocalDateTime currentDateAndHour = LocalDateTime.now().withMinute(0).withSecond(0).withNano(0);
-        for (int d = 2; d >= 0; d--) {
-            for (int h = 23; h >= 0; h--) {
-                int index = response.getHourly().getTime().lastIndexOf(currentDateAndHour.minusDays(d).minusHours(h));
-
-                LocalDateTime dateTime = response.getHourly().getTime().get(index);
-                Double temperature = response.getHourly().getTemperature_2m().get(index);
-                Integer humidity = response.getHourly().getRelativehumidity_2m().get(index);
-                Double precipitation = response.getHourly().getPrecipitation().get(index);
-                Integer cloudCover = response.getHourly().getCloudcover().get(index);
-                Double windSpeed = response.getHourly().getWindspeed_10m().get(index);
-
-                MeasuredHourlyWeatherData m = new MeasuredHourlyWeatherData(dateTime, temperature, humidity, precipitation, cloudCover, windSpeed);
-                System.out.println(m);
-                temperatureTemplateKieSession.insert(m);
-                temperatureTemplateKieSession.fireAllRules();
-            }
-        }
+        List<PredictedHourlyTemperature> predictedHourlyTemperatures = getPredictedHourlyTemperatures(response.getHourly());
+        List<PredictedHourlyPrecipitationProbability> predictedHourlyPrecipitationProbabilities = getPredictedHourlyPrecipitationProbability(response.getHourly());
 
         List<Integer> hours = get24HoursFromNow();
-        System.out.println(hours);
-
-        List<PredictedHourlyTemperature> predictedHourlyTemperatures = new ArrayList<>();
-        Collection<?> objects = temperatureTemplateKieSession.getObjects(obj -> obj instanceof PredictedHourlyTemperature);
-        for (Object o : objects) {
-            predictedHourlyTemperatures.add((PredictedHourlyTemperature) o);
-        }
         predictedHourlyTemperatures.sort(Comparator.comparingInt(t -> hours.indexOf(t.getHour())));
-        System.out.println(predictedHourlyTemperatures);
-
-        int index = response.getHourly().getTime().lastIndexOf(currentDateAndHour);
-
-        LocalDateTime dateTime = response.getHourly().getTime().get(index);
-        Double temperature = response.getHourly().getTemperature_2m().get(index);
-        Integer humidity = response.getHourly().getRelativehumidity_2m().get(index);
-        Double precipitation = response.getHourly().getPrecipitation().get(index);
-        Integer cloudCover = response.getHourly().getCloudcover().get(index);
-        Double windSpeed = response.getHourly().getWindspeed_10m().get(index);
-
-        MeasuredHourlyWeatherData m = new MeasuredHourlyWeatherData(dateTime, temperature, humidity, precipitation, cloudCover, windSpeed);
-        System.out.println(m);
-        precipitationKieSession.insert(m);
-        precipitationKieSession.fireAllRules();
-
-        List<PredictedHourlyPrecipitationProbability> predictedHourlyPrecipitationProbabilities = new ArrayList<>();
-        objects = precipitationKieSession.getObjects(obj -> obj instanceof PredictedHourlyPrecipitationProbability);
-        for (Object o : objects) {
-            predictedHourlyPrecipitationProbabilities.add((PredictedHourlyPrecipitationProbability) o);
-        }
-        predictedHourlyPrecipitationProbabilities.sort(Comparator.comparingInt(t -> hours.indexOf(t.getHour())));
+        predictedHourlyPrecipitationProbabilities.sort(Comparator.comparingInt(p -> hours.indexOf(p.getHour())));
 
         List<HourlyForecastResponse> forecast = new ArrayList<>();
-        for (int i = 0; i < hours.size(); i++) {
-            Integer hour = hours.get(i);
-            Optional<PredictedHourlyTemperature> predictedHourlyTemperature = predictedHourlyTemperatures.stream().filter(obj -> Objects.equals(obj.getHour(), hour)).findFirst();
-            Double t = predictedHourlyTemperature.get().getTemperature();
-            forecast.add(new HourlyForecastResponse(hour, t, predictedHourlyPrecipitationProbabilities.get(0).getPrecipitationProbability()));
+        for (Integer hour : hours) {
+            Optional<PredictedHourlyTemperature> optionalTemperature = predictedHourlyTemperatures.stream().filter(obj -> Objects.equals(obj.getHour(), hour)).findFirst();
+            Double temperature = optionalTemperature.get().getTemperature();
+
+            Optional<PredictedHourlyPrecipitationProbability> optionalPrecipitation = predictedHourlyPrecipitationProbabilities.stream().filter(obj -> Objects.equals(obj.getHour(), hour)).findFirst();
+            Integer precipitation = optionalPrecipitation.get().getPrecipitationProbability();
+
+            forecast.add(new HourlyForecastResponse(hour, temperature, precipitation));
         }
         return forecast;
     }
@@ -156,9 +112,61 @@ public class WeatherForecastService {
         return warningMessages;
     }
 
-    private KieSession createTemperatureTemplateKieSession(LocalDateTime startingDateTime) throws FileNotFoundException {
+    private List<PredictedHourlyTemperature> getPredictedHourlyTemperatures(HourlyData hourlyData) throws FileNotFoundException {
+        KieSession temperatureTemplateKieSession = createTemperatureTemplateKieSession(TEMPERATURE_TEMPLATE_FILE_PATH, LocalDateTime.now());
+        temperatureTemplateKieSession.fireAllRules();
+
+        LocalDateTime currentDateAndHour = LocalDateTime.now().withMinute(0).withSecond(0).withNano(0);
+        for (int d = 2; d >= 0; d--) {
+            for (int h = 23; h >= 0; h--) {
+                int index = hourlyData.getTime().lastIndexOf(currentDateAndHour.minusDays(d).minusHours(h));
+                MeasuredHourlyWeatherData m = createMeasuredHourlyWeatherData(hourlyData, index);
+                temperatureTemplateKieSession.insert(m);
+                temperatureTemplateKieSession.fireAllRules();
+            }
+        }
+
+        List<PredictedHourlyTemperature> predictedHourlyTemperatures = new ArrayList<>();
+        Collection<?> objects = temperatureTemplateKieSession.getObjects(obj -> obj instanceof PredictedHourlyTemperature);
+        for (Object o : objects) {
+            predictedHourlyTemperatures.add((PredictedHourlyTemperature) o);
+        }
+        return predictedHourlyTemperatures;
+    }
+
+    private List<PredictedHourlyPrecipitationProbability> getPredictedHourlyPrecipitationProbability(HourlyData hourlyData) throws FileNotFoundException {
+        KieSession temperatureTemplateKieSession = createTemperatureTemplateKieSession(PRECIPITATION_TEMPLATE_FILE_PATH, LocalDateTime.now());
+        temperatureTemplateKieSession.fireAllRules();
+
+        LocalDateTime currentDateAndHour = LocalDateTime.now().withMinute(0).withSecond(0).withNano(0);
+
+        int index = hourlyData.getTime().lastIndexOf(currentDateAndHour);
+        MeasuredHourlyWeatherData m = createMeasuredHourlyWeatherData(hourlyData, index);
+        temperatureTemplateKieSession.insert(m);
+        temperatureTemplateKieSession.fireAllRules();
+
+        List<PredictedHourlyPrecipitationProbability> predictedHourlyPrecipitationProbabilities = new ArrayList<>();
+        Collection<?> objects = temperatureTemplateKieSession.getObjects(obj -> obj instanceof PredictedHourlyPrecipitationProbability);
+        for (Object o : objects) {
+            predictedHourlyPrecipitationProbabilities.add((PredictedHourlyPrecipitationProbability) o);
+        }
+        return predictedHourlyPrecipitationProbabilities;
+    }
+
+    private MeasuredHourlyWeatherData createMeasuredHourlyWeatherData(HourlyData hourlyData, int index) {
+        LocalDateTime dateTime = hourlyData.getTime().get(index);
+        Double temperature = hourlyData.getTemperature_2m().get(index);
+        Integer humidity = hourlyData.getRelativehumidity_2m().get(index);
+        Double precipitation = hourlyData.getPrecipitation().get(index);
+        Integer cloudCover = hourlyData.getCloudcover().get(index);
+        Double windSpeed = hourlyData.getWindspeed_10m().get(index);
+
+        return new MeasuredHourlyWeatherData(dateTime, temperature, humidity, precipitation, cloudCover, windSpeed);
+    }
+
+    private KieSession createTemperatureTemplateKieSession(String templateFilePath, LocalDateTime startingDateTime) throws FileNotFoundException {
         ApplicationHome home = new ApplicationHome(WeatherForecastService.class);
-        String path = home.getDir().getParentFile().getParentFile().getParent().concat(TEMPERATURE_TEMPLATE_FILE_PATH);
+        String path = home.getDir().getParentFile().getParentFile().getParent().concat(templateFilePath);
         InputStream template = new FileInputStream(path);
 
         String y = String.valueOf(startingDateTime.getYear());
@@ -167,7 +175,7 @@ public class WeatherForecastService {
         String h = String.valueOf(startingDateTime.getHour());
         String min = String.valueOf(startingDateTime.getMinute());
 
-        String[][] hours = new String[24][2];
+        String[][] hours = new String[24][5];
         for (int i = 0; i <= 23; i++) {
             String hourString = String.valueOf(i + 1);
             hours[i] = new String[] {hourString, y, m, d, h, min};
