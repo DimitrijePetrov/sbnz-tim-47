@@ -8,6 +8,9 @@
 	<kbase name="temperatureTemplate" packages="template">
 		<ksession name="temperatureTemplateSession"/>
 	</kbase>
+	<kbase name="precipitationTemplate" packages="template">
+		<ksession name="precipitationTemplateSession"/>
+	</kbase>
 	<kbase name="warningCEP" packages="cep" eventProcessingMode="stream">
 		<ksession name="warningCEPSession"/>
 	</kbase>

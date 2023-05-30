@@ -1,0 +1,105 @@
+template header
+futureHours
+y
+m
+d
+h
+min
+
+package template;
+
+import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.time.LocalTime;
+
+import com.weatherforecast.model.MeasuredHourlyWeatherData;
+import com.weatherforecast.model.PredictedHourlyPrecipitationProbability;
+
+template "temperatureTemplate"
+
+rule "create predicted precipitation probability object if it does not exist @{futureHours}"
+salience 6
+    when
+        MeasuredHourlyWeatherData(
+            date == LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).toLocalDate(),
+            hour == LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).getHour()
+        )
+        not(
+            PredictedHourlyPrecipitationProbability(
+                date == LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).toLocalDate(), //Template, replace 1 with hours int
+                hour == LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).getHour()
+            )
+        )
+    then
+        System.out.println("Object created for date and time: " + LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}));
+        insert(new PredictedHourlyPrecipitationProbability(LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours})));
+end
+
+rule "check if there was precipitation in the past hour @{futureHours}"
+salience 5
+    when
+        $m: MeasuredHourlyWeatherData(
+            date == LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).toLocalDate(),
+            hour == LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).getHour(),
+            $precipitation: precipitation
+        )
+        $p: PredictedHourlyPrecipitationProbability(
+            date == LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).toLocalDate(),
+            hour == LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).getHour(),
+            precipitationProbability == null
+        )
+    then
+        Integer probability = ($m.getPrecipitation() == 0) ? 0 : 50;
+        modify($p){
+            setPrecipitationProbability(probability)
+        }
+        System.out.println("Base probability: " + probability);
+end
+
+rule "increase probability of precipitation based on humidity and cloud cover @{futureHours}"
+salience 4
+    when
+        $m: MeasuredHourlyWeatherData(
+            date == LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).toLocalDate(),
+            hour == LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).getHour(),
+            $humidity: humidity,
+            $cloudCover: cloudCover
+        )
+        $p: PredictedHourlyPrecipitationProbability(
+            date == LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).toLocalDate(),
+            hour == LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).getHour(),
+            precipitationProbability != null,
+            modifiersApplied == false
+        )
+    then
+        modify($p){
+            addHumidityModifier($humidity),
+            addCloudCoverModifier($cloudCover),
+            setModifiersApplied(true)
+        }
+        System.out.println("Modified probability: " + $p.getPrecipitationProbability());
+end
+
+rule "decrease probability of precipitation based on wind speed @{futureHours}"
+salience 3
+no-loop true
+    when
+        $m: MeasuredHourlyWeatherData(
+            date == LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).toLocalDate(),
+            hour == LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).getHour(),
+            $windSpeed: windSpeed
+        )
+        $p: PredictedHourlyPrecipitationProbability(
+            date == LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).toLocalDate(), //Template, replace 1 with hours into the future
+            hour == LocalDateTime.of(@{y}, @{m}, @{d}, @{h}, @{min}).plusHours(@{futureHours}).getHour(), //Template, replace 1 with hours into the future
+            precipitationProbability != null,
+            modifiersApplied == true
+        )
+    then
+        modify($p){
+            applyWindSpeedFactor($windSpeed)
+        }
+        System.out.println("Wind speed probability: " + $p.getPrecipitationProbability());
+end
+
+end template
