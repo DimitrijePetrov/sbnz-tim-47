@@ -106,7 +106,7 @@ public class PredictedHourlyPrecipitationProbability {
     public void applyWindSpeedFactor(Double windSpeed) {
         LocalDateTime dateTimeOfPrediction = LocalDateTime.of(this.date, LocalTime.of(this.hour, 0));
         long hoursDifference = ChronoUnit.HOURS.between(LocalDateTime.now(), dateTimeOfPrediction) + 1;
-        double modifierPerDay = Math.pow(Math.E, (-0.01 * windSpeed));
+        double modifierPerDay = Math.pow(Math.E, (-0.03 * windSpeed));
         this.precipitationProbability = (int) (this.precipitationProbability * Math.pow(modifierPerDay, hoursDifference));
     }
 }
